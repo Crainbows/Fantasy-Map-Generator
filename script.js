@@ -813,7 +813,7 @@ function fantasyMap() {
     let radius = r;
     let selection = [center];
     if (radius > 1) selection = selection.concat(cells[center].neighbors);
-    selection = $.grep(selection, function(e) {return cells[e].height >= 20;});
+    selection = selection.filter(function(e) {return cells[e].height >= 20;});
     if (radius === 2) return selection;
     let frontier = cells[center].neighbors;
     while (radius > 2) {
@@ -829,7 +829,7 @@ function fantasyMap() {
       });
       radius--;
     }
-    selection = $.grep(selection, function(e) {return cells[e].height >= 20;});
+    selection = selection.filter(function(e) {return cells[e].height >= 20;});
     return selection;
   }
 
@@ -1220,7 +1220,7 @@ function fantasyMap() {
       let change = height ? height + 10 : Math.random() * 10 + 20;
       let start = cell;
       if (!start) {
-        const lowlands = $.grep(cells, function(e) {return (heights[e.index] >= 20);});
+        const lowlands = cells.filter(function(e) {return (heights[e.index] >= 20);});
         if (!lowlands.length) return;
         const rnd = Math.floor(Math.random() * lowlands.length);
         start = lowlands[rnd].index;
@@ -1386,7 +1386,7 @@ function fantasyMap() {
     let limits = [];
     let odd = 0.8; // initial odd for ocean layer is 80%
     // Define type of ocean cells based on cell distance form land
-    let frontier = $.grep(cells, function(e) {return e.ctype === -1;});
+    let frontier = cells.filter(function(e) {return e.ctype === -1;});
     if (Math.random() < odd) {limits.push(-1); odd = 0.2;}
     for (let c = -2; frontier.length > 0 && c > -10; c--) {
       if (Math.random() < odd) {limits.unshift(c); odd = 0.2;} else {odd += 0.2;}
@@ -1395,7 +1395,7 @@ function fantasyMap() {
           if (!cells[e].ctype) cells[e].ctype = c;
         });
       });
-      frontier = $.grep(cells, function(e) {return e.ctype === c;});
+      frontier = cells.filter(function(e) {return e.ctype === c;});
     }
     if (outlineLayersInput.value === "none") return;
     if (outlineLayersInput.value !== "random") limits = outlineLayersInput.value.split(",");
@@ -1459,7 +1459,7 @@ function fantasyMap() {
       }
       const region = i.region; // handle value for edit heightmap mode only
       const culture = i.culture; // handle value for edit heightmap mode only
-      let copy = $.grep(newPoints, function(e) {return (e[0] == x && e[1] == y);});
+      let copy = newPoints.filter(function(e) {return (e[0] == x && e[1] == y);});
       if (!copy.length) {
         newPoints.push([x, y]);
         tempCells.push({index:tempCells.length, data:[x, y],height, pit, ctype, fn, harbor, lake, region, culture});
@@ -1473,7 +1473,7 @@ function fantasyMap() {
             let x1 = (x * 2 + cells[e].data[0]) / 3;
             let y1 = (y * 2 + cells[e].data[1]) / 3;
             x1 = rn(x1, 1), y1 = rn(y1, 1);
-            copy = $.grep(newPoints, function(e) {return e[0] === x1 && e[1] === y1;});
+            copy = newPoints.filter(function(e) {return e[0] === x1 && e[1] === y1;});
             if (copy.length) return;
             newPoints.push([x1, y1]);
             tempCells.push({index:tempCells.length, data:[x1, y1],height, pit, ctype, fn, harbor, lake, region, culture});
@@ -1487,7 +1487,7 @@ function fantasyMap() {
           const x1 = rn((e[0] * rnd + i.data[0]) / (1 + rnd), 2);
           rnd = Math.random() * 0.6 + 0.8;
           const y1 = rn((e[1] * rnd + i.data[1]) / (1 + rnd), 2);
-          copy = $.grep(newPoints, function(c) {return x1 === c[0] && y1 === c[1];});
+          copy = newPoints.filter(function(c) {return x1 === c[0] && y1 === c[1];});
           if (copy.length) return;
           newPoints.push([x1, y1]);
           tempCells.push({index:tempCells.length, data:[x1, y1], height, pit, ctype, fn, region, culture});
@@ -1966,7 +1966,7 @@ function fantasyMap() {
   function elevateLakes() {
     console.time('elevateLakes');
     let max  = points.length / 100; // max cells number to treat lake as open (should be based on biome in the future)
-    const lakes = $.grep(cells, function(e, d) {return heights[d] < 20 && !features[e.fn].border && features[e.fn].cells < max;});
+    const lakes = cells.filter(function(e, d) {return heights[d] < 20 && !features[e.fn].border && features[e.fn].cells < max;});
     lakes.sort(function(a, b) {return heights[b.index] - heights[a.index];});
     for (let i=0; i < lakes.length; i++) {
       const hs = [], id = lakes[i].index;
@@ -1984,7 +1984,7 @@ function fantasyMap() {
   // Depression filling algorithm (for a correct water flux modeling; phase1)
   function resolveDepressionsPrimary() {
     console.time('resolveDepressionsPrimary');
-    land = $.grep(cells, function(e, d) {
+    land = cells.filter(function(e, d) {
       if (!e.height) e.height = heights[d]; // use height on object level
       return e.height >= 20;
     });
@@ -2011,7 +2011,7 @@ function fantasyMap() {
   // Depression filling algorithm (for a correct water flux modeling; phase2)
   function resolveDepressionsSecondary() {
     console.time('resolveDepressionsSecondary');
-    land = $.grep(cells, function(e) {return e.height >= 20;});
+    land = cells.filter(function(e) {return e.height >= 20;});
     land.sort(function(a, b) {return b.height - a.height;});
     const limit = 100;
     for (let l = 0, depression = 1; depression > 0 && l < limit; l++) {
@@ -2089,10 +2089,10 @@ function fantasyMap() {
           cells[min].river = land[i].river;
         } else {
           const riverTo = cells[min].river;
-          const iRiver = $.grep(riversData, function (e) {
+          const iRiver = riversData.filter(function (e) {
             return (e.river == land[i].river);
           });
-          const minRiver = $.grep(riversData, function (e) {
+          const minRiver = riversData.filter(function (e) {
             return (e.river == riverTo);
           });
           let iRiverL = iRiver.length;
@@ -2139,7 +2139,7 @@ function fantasyMap() {
   function drawRiverLines(riverNext) {
     console.time('drawRiverLines');
     for (let i = 0; i < riverNext; i++) {
-      const dataRiver = $.grep(riversData, function (e) {
+      const dataRiver = riversData.filter(function (e) {
         return e.river === i;
       });
       if (dataRiver.length > 1) {
@@ -2343,7 +2343,7 @@ function fantasyMap() {
     }
 
     // mark small lakes
-    let unmarked = $.grep(land, function(e) {return e.fn === -1});
+    let unmarked = land.filter(function(e) {return e.fn === -1});
     while (unmarked.length) {
       let fn = -1, queue = [unmarked[0].index],lakeCells = [];
       unmarked[0].session = "addLakes";
@@ -2363,10 +2363,10 @@ function fantasyMap() {
         features.push({i: fn, land: false, border: false});
       }
       lakeCells.forEach(function(c) {cells[c].fn = fn;});
-      unmarked = $.grep(land, function(e) {return e.fn === -1});
+      unmarked = land.filter(function(e) {return e.fn === -1});
     }
 
-    land = $.grep(cells, function(e) {return e.height >= 20;});
+    land = cells.filter(function(e) {return e.height >= 20;});
     console.timeEnd('addLakes');
   }
 
@@ -4634,7 +4634,7 @@ function fantasyMap() {
     // calculate population for each state
     states.map(function(s, i) {
       // define region burgs count
-      const burgs = $.grep(manors, function (e) {
+      const burgs = manors.filter(function (e) {
         return e.region === i;
       });
       s.burgs = burgs.length;
@@ -4642,7 +4642,7 @@ function fantasyMap() {
       let burgsPop = 0; // get summ of all burgs population
       burgs.map(function(b) {burgsPop += b.population;});
       s.urbanPopulation = rn(burgsPop, 2);
-      const regionCells = $.grep(cells, function (e) {
+      const regionCells = cells.filter(function (e) {
         return e.region === i;
       });
       let cellsPop = 0;
@@ -4652,7 +4652,7 @@ function fantasyMap() {
     });
 
     // collect data for neutrals
-    const neutralCells = $.grep(cells, function(e) {return e.region === "neutral";});
+    const neutralCells = cells.filter(function(e) {return e.region === "neutral";});
     if (neutralCells.length) {
       let burgs = 0, urbanPopulation = 0, ruralPopulation = 0, area = 0;
       manors.forEach(function(m) {
@@ -4803,13 +4803,13 @@ function fantasyMap() {
     console.time("checkAccessibility");
     for (let f = 0; f < features.length; f++) {
       if (!features[f].land) continue;
-      const manorsOnIsland = $.grep(land, function (e) {
+      const manorsOnIsland = land.filter(function (e) {
         return e.manor !== undefined && e.fn === f;
       });
       if (!manorsOnIsland.length) continue;
 
       // if lake port is the only port on lake, remove port
-      const lakePorts = $.grep(manorsOnIsland, function (p) {
+      const lakePorts = manorsOnIsland.filter(function (p) {
         return p.port && !features[p.port].border;
       });
       if (lakePorts.length) {
@@ -4819,11 +4819,11 @@ function fantasyMap() {
       }
 
       // check how many ocean ports are there on island
-      const oceanPorts = $.grep(manorsOnIsland, function (p) {
+      const oceanPorts = manorsOnIsland.filter(function (p) {
         return p.port && features[p.port].border;
       });
       if (oceanPorts.length) continue;
-      const portCandidates = $.grep(manorsOnIsland, function (c) {
+      const portCandidates = manorsOnIsland.filter(function (c) {
         return c.harbor && features[cells[c.harbor].fn].border && c.ctype === 1;
       });
       if (portCandidates.length) {
@@ -4850,7 +4850,7 @@ function fantasyMap() {
     if (states.length < 2 || manors.length < 2) return;
     for (let f = 0; f < features.length; f++) {
       if (!features[f].land) continue;
-      const manorsOnIsland = $.grep(land, function(e) {return e.manor !== undefined && e.fn === f;});
+      const manorsOnIsland = land.filter(function(e) {return e.manor !== undefined && e.fn === f;});
       if (manorsOnIsland.length > 1) {
         for (let d = 1; d < manorsOnIsland.length; d++) {
           for (let m = 0; m < d; m++) {
@@ -4873,7 +4873,7 @@ function fantasyMap() {
       if (cells[cell].port === undefined) portless.push(s);
     }
     for (let l=0; l < portless.length; l++) {
-      const ports = $.grep(land, function(l) {return l.port !== undefined && l.region === portless[l];});
+      const ports = land.filter(function(l) {return l.port !== undefined && l.region === portless[l];});
       if (!ports.length) continue;
       let minDist = 1000, end = -1;
       ports.map(function(p) {
@@ -4893,7 +4893,7 @@ function fantasyMap() {
     console.time("generateSmallRoads");
     if (manors.length < 2) return;
     for (let f = 0; f < features.length; f++) {
-      const manorsOnIsland = $.grep(land, function (e) {
+      const manorsOnIsland = land.filter(function (e) {
         return e.manor !== undefined && e.fn === f;
       });
       const l = manorsOnIsland.length;
@@ -4912,7 +4912,7 @@ function fantasyMap() {
           if (!e.path && d > 0) {
             const start = e.index;
             let end = -1;
-            const road = $.grep(land, function (e) {
+            const road = land.filter(function (e) {
               return e.path && e.fn === f;
             });
             if (road.length > 0) {
@@ -5512,7 +5512,7 @@ function fantasyMap() {
       spl = end.split(" ");
       edgesOrdered.push({scX: spl[0],scY: spl[1]});
       for (let i = 0; end !== start && i < 2000; i++) {
-        const next = $.grep(edges, function (e) {
+        const next = edges.filter(function (e) {
           return (e.start == end || e.end == end);
         });
         if (next.length > 0) {
@@ -5556,7 +5556,7 @@ function fantasyMap() {
       edgesOrdered.push({scX: spl[0],scY: spl[1]});
       spl = end.split(" ");
       edgesOrdered.push({scX: spl[0],scY: spl[1]});
-      let next = $.grep(edges, function (e) {
+      let next = edges.filter(function (e) {
         return (e.start == end || e.end == end);
       });
       while (next.length > 0) {
@@ -5569,7 +5569,7 @@ function fantasyMap() {
         edgesOrdered.push({scX: spl[0],scY: spl[1]});
         const rem = edges.indexOf(next[0]);
         edges.splice(rem, 1);
-        next = $.grep(edges, function(e) {return (e.start == end || e.end == end);});
+        next = edges.filter(function(e) {return (e.start == end || e.end == end);});
       }
       path += lineGen(edgesOrdered);
     }
@@ -5589,7 +5589,7 @@ function fantasyMap() {
       edgesOrdered.push({scX: spl[0],scY: spl[1]});
       spl = end.split(" ");
       edgesOrdered.push({scX: spl[0],scY: spl[1]});
-      let next = $.grep(edges, function (e) {
+      let next = edges.filter(function (e) {
         return (e.start == end || e.end == end);
       });
       while (next.length > 0) {
@@ -5602,7 +5602,7 @@ function fantasyMap() {
         edgesOrdered.push({scX: spl[0],scY: spl[1]});
         const rem = edges.indexOf(next[0]);
         edges.splice(rem, 1);
-        next = $.grep(edges, function(e) {return (e.start == end || e.end == end);});
+        next = edges.filter(function(e) {return (e.start == end || e.end == end);});
       }
       path += lineGen(edgesOrdered);
     }
@@ -5821,11 +5821,11 @@ function fantasyMap() {
 
     function defineSelection(coast, port, river) {
       let selection = [];
-      if (port && river) selection = $.grep(manors, function(e) {return cells[e.cell].port !== undefined && cells[e.cell].river !== undefined;});
-      else if (!port && coast && river) selection = $.grep(manors, function(e) {return cells[e.cell].port === undefined && cells[e.cell].ctype === 1 && cells[e.cell].river !== undefined;});
-      else if (!coast && !river) selection = $.grep(manors, function(e) {return cells[e.cell].ctype !== 1 && cells[e.cell].river === undefined;});
-      else if (!coast && river) selection = $.grep(manors, function(e) {return cells[e.cell].ctype !== 1 && cells[e.cell].river !== undefined;});
-      else if (coast && !river) selection = $.grep(manors, function(e) {return cells[e.cell].ctype === 1 && cells[e.cell].river === undefined;});
+      if (port && river) selection = manors.filter(function(e) {return cells[e.cell].port !== undefined && cells[e.cell].river !== undefined;});
+      else if (!port && coast && river) selection = manors.filter(function(e) {return cells[e.cell].port === undefined && cells[e.cell].ctype === 1 && cells[e.cell].river !== undefined;});
+      else if (!coast && !river) selection = manors.filter(function(e) {return cells[e.cell].ctype !== 1 && cells[e.cell].river === undefined;});
+      else if (!coast && river) selection = manors.filter(function(e) {return cells[e.cell].ctype !== 1 && cells[e.cell].river !== undefined;});
+      else if (coast && !river) selection = manors.filter(function(e) {return cells[e.cell].ctype === 1 && cells[e.cell].river === undefined;});
       return selection;
     }
 
@@ -6326,9 +6326,9 @@ function fantasyMap() {
           else {
             const r = cells[min].river;
             const riverEl = $("#river"+r);
-            const riverCells = $.grep(land, function(e) {return e.river === r;});
+            const riverCells = land.filter(function(e) {return e.river === r;});
             riverCells.sort(function(a, b) {return b.height - a.height});
-            const riverCellsUpper = $.grep(riverCells, function(e) {return e.height > cells[min].height;});
+            const riverCellsUpper = riverCells.filter(function(e) {return e.height > cells[min].height;});
             if (dataRiver.length > riverCellsUpper.length) {
               // new river is more perspective
               const avPrec = rn(precInput.value / Math.sqrt(cells.length), 2);
@@ -6429,12 +6429,12 @@ function fantasyMap() {
   function recalculateStateData(state) {
     const s = states[state] || states[states.length - 1];
     if (s.capital === "neutral") state = "neutral";
-    const burgs = $.grep(manors, function(e) {return e.region === state;});
+    const burgs = manors.filter(function(e) {return e.region === state;});
     s.burgs = burgs.length;
     let burgsPop = 0; // get summ of all burgs population
     burgs.map(function(b) {burgsPop += b.population;});
     s.urbanPopulation = rn(burgsPop, 1);
-    const regionCells = $.grep(cells, function(e) {return (e.region === state);});
+    const regionCells = cells.filter(function(e) {return (e.region === state);});
     let cellsPop = 0, area = 0;
     regionCells.forEach(function(c) {
       cellsPop += c.pop;
@@ -7112,7 +7112,7 @@ function fantasyMap() {
       }
     });
 
-    land = $.grep(cells, function(e) {return (e.height >= 20);});
+    land = cells.filter(function(e) {return (e.height >= 20);});
     calculateVoronoi(newPoints);
 
     // get heights Uint8Array
@@ -8797,7 +8797,7 @@ function fantasyMap() {
     $("#burgsBody").empty();
     $("#burgsHeader").children().removeClass("icon-sort-name-up icon-sort-name-down icon-sort-number-up icon-sort-number-down");
     const region = states[s].capital === "neutral" ? "neutral" : s;
-    const burgs = $.grep(manors, function (e) {
+    const burgs = manors.filter(function (e) {
       return (e.region === region);
     });
     const populationArray = [];
@@ -8972,7 +8972,7 @@ function fantasyMap() {
 
   function focusBurgs() {
     const s = +(this.parentNode.id).slice(5);
-    const stateManors = $.grep(manors, function (e) {
+    const stateManors = manors.filter(function (e) {
       return (e.region === s);
     });
     stateManors.map(function(m) {
@@ -9805,7 +9805,7 @@ function fantasyMap() {
         .attr("d", "M" + polygons[l.index].join("L") + "Z")
         .attr("fill", color).attr("stroke", color);
     });
-    const neutralCells = $.grep(cells, function(e) {return e.region === "neutral";});
+    const neutralCells = cells.filter(function(e) {return e.region === "neutral";});
     const last = states.length - 1;
     const type = states[last].color;
     if (type === "neutral" && !neutralCells.length) {
